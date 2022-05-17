@@ -24,5 +24,11 @@ contract CurvePoolsWatchingTest is Test {
         assertTrue(setAddress==curvePoolAddress);
     }
 
+    function testCanGetPrice() public {
+        priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
+        uint256 p = priceAndSlippageComputer.getPrice();
+        assertTrue(p>0);
+    }
 
+// forge test --fork-url http://rpcdaemon.erigon.dappnode:8545
 }
