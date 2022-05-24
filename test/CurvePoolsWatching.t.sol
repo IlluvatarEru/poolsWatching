@@ -26,7 +26,7 @@ contract CurvePoolsWatchingTest is Test {
 
     function testGetIndex() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
-        int daiIndex = priceAndSlippageComputer.getIndexOfToken("DAI");
+        uint daiIndex = priceAndSlippageComputer.getIndexOfToken("DAI");
         assert(daiIndex == 0);
     }
 
