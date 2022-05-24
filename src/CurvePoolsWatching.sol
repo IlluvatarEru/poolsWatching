@@ -31,7 +31,7 @@ contract PriceAndSlippageComputerContract {
     mapping (string => mapping (string => address)) public pools;
     // map token to their addresses
     mapping (string => address) public tokens;
-    int N_COINS=4;
+    uint128 N_COINS=4;
     uint256 PRECISION = 10 ** 18;
     int256 PRECISION_I = 10 ** 18;
     uint256[4] PRECISION_MUL = [uint256(1), uint256(1000000000000), uint256(1000000000000), uint256(1)];
@@ -66,46 +66,59 @@ contract PriceAndSlippageComputerContract {
     function _xp(uint256[4] memory rates) public returns(uint256[4] memory){
         uint256[4] memory result = rates;
         uint256 ind=0;
-        for(int128 i=0;i<N_COINS;++i){
-            result[ind] = result[ind] * stableSwap.balances(i) / PRECISION;
-            ind++;
+        for(uint128 i=0;i<N_COINS;){
+            result[ind] = result[ind] * stableSwap.balances(int128(i)) / PRECISION;
+            unchecked {
+                ind++;
+                i++;
+            }
         }
         return result;
     }
 
     // Get the index of the token in all curve arrays
-    function getIndexOfToken(string memory token) public view returns (int128) {
+    function getIndexOfToken(string memory token) public view returns (uint128) {
         address tokenAddress = tokens[token];
-        for(int128 i=0;i<N_COINS;++i){
-            if(tokenAddress==stableSwap.underlying_coins(i)){
+        for(uint128 i=0;i<N_COINS;++i){
+            if(tokenAddress==stableSwap.underlying_coins(int128(i))){
                 return i;
             }
         }
-        return -1;
     }
 
     function getBalanceOfToken(string memory token) public view returns(uint){
-        return stableSwap.balances(getIndexOfToken(token));//PRECISION;
+        return stableSwap.balances(int128(getIndexOfToken(token)));
     }
 
     function getXpsOfToken(string memory token) public returns(uint256){
         uint256[4] memory a = _xp(stored_rates());
-        int128 ind = getIndexOfToken(token);
+        uint128 ind = getIndexOfToken(token);
         //uint256 ind256 = uint256(ind);
-        return a[0];
+        return a[ind];
+    }
+    function getAmplificationFactor() public view returns(uint){
+        return stableSwap.A();
     }
 
-    function computePrice(string memory tokenFrom, string memory tokenTo, uint256 amount) public returns(uint){
+    function computePrice(string memory tokenFrom, string memory tokenTo) public returns(uint){
         address poolAddress = pools["Curve"][tokenFrom];
         setCurvePoolContractAddress(poolAddress);
-        uint x = getBalanceOfToken(tokenFrom);
-        uint y = getBalanceOfToken(tokenTo);
-        //int k = x*y;
-        int A = int(stableSwap.A())/PRECISION_I;
-        return y; 
-        // TODO: modifffy to actually return
-        //int(amount*PRECISION)* (2*x*int(sqrt(uint(x*(4*A*(k**3)+x*(- 4*A*k + 4*A*x+k)**2))))+8*A*k*x**2 -8*A*x**3+k**3-2*k*x**2);
-        //(4*x*int(sqrt(uint(4*A*k**3+x*(-4*A*k+4*A*x+k)**2))));
+        uint256[4] memory rates = stored_rates();
+        uint256[4] memory xps = _xp(rates);
+        uint reserveFrom = xps[getIndexOfToken(tokenFrom)]/PRECISION;
+        uint reserveTo = xps[getIndexOfToken(tokenTo)]/PRECISION;
+        int k = int256(reserveFrom*reserveTo);
+        int A = int256(stableSwap.A());
+        int x = int256(reserveTo);
+        return computePriceFromParameters(k, A, x);
+    }
+
+    function computePriceFromParameters(int k, int A, int x) public pure returns(uint) {
+        return uint256((2*x*sqrtInt(x*(4*A*(k**3)+x*(4*A*x+k- 4*A*k)**2))+8*A*k*(x**2) -8*A*(x**3)+(k**3)-2*k*(x**2))/(4*x*sqrtInt(4*A*(k**3)+x*(4*A*x+k-4*A*k)**2)));    
+    }
+
+    function sqrtInt(int256 y) internal pure returns (int z) {
+        return int(sqrt(uint256(y)));
     }
 
     function sqrt(uint256 y) internal pure returns (uint z) {

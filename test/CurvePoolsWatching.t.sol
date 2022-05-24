@@ -26,7 +26,7 @@ contract CurvePoolsWatchingTest is Test {
 
     function testGetIndex() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
-        int daiIndex = priceAndSlippageComputer.getIndexOfToken("DAI");
+        uint daiIndex = priceAndSlippageComputer.getIndexOfToken("DAI");
         assert(daiIndex == 0);
     }
 
@@ -58,6 +58,12 @@ contract CurvePoolsWatchingTest is Test {
         console.log("price", p);
         assertTrue(p>0);
     }
+    function testAmplificationFactor() public {
+        priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
+        uint a = priceAndSlippageComputer.getAmplificationFactor();
+        console.log("A",a);
+        assertTrue(a>0);
+    }
 
     function testBalanceRates() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
@@ -65,13 +71,15 @@ contract CurvePoolsWatchingTest is Test {
         uint256[4] memory rates = priceAndSlippageComputer.stored_rates();
         uint256[4] memory xps = priceAndSlippageComputer._xp(rates);
         string[4] memory ttt = ["DAI","USDC","USDT","BUSD"];
+        console.log(priceAndSlippageComputer.computePriceFromParameters(14087404581786,500,4787106));
         for(uint256 i=0;i<4;++i){
             string memory token = ttt[i];
-            p = priceAndSlippageComputer.computePrice("BUSD",token,1);
+            p = priceAndSlippageComputer.computePrice("BUSD",token);
+            console.log("---------------");
             console.log("token", token);
-            console.log("balance", uint(p));
-            console.log("rate",rates[i]);
-            console.log("xps",xps[i]);
+            console.log("price", uint(p));
+            console.log("Balance",xps[i]/10 ** 18);
+            console.log("k",(xps[i]/10 ** 18)*(xps[3]/10 ** 18));
         }        
         assertTrue(uint(p)>0);
     }
@@ -82,6 +90,5 @@ contract CurvePoolsWatchingTest is Test {
 
 // forge test --fork-url http://rpcdaemon.erigon.dappnode:8545 -vvvv --match-test testP
 
-//underlying coin 0x6b175474e89094c44da98b954eedeac495271d0f
-//coin 0xc2cb1040220768554cf699b0d863a3cd4324ce32
+
 }
