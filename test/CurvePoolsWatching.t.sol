@@ -24,13 +24,6 @@ contract CurvePoolsWatchingTest is Test {
         assertTrue(setAddress==curvePoolAddress);
     }
 
-    function testCanGetPrice() public {
-        priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
-        uint256 p = priceAndSlippageComputer.getPrice();
-        console.log("price", p);
-        assertTrue(p>0);
-    }
-
     function testGetIndex() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
         int daiIndex = priceAndSlippageComputer.getIndexOfToken("DAI");
@@ -49,33 +42,24 @@ contract CurvePoolsWatchingTest is Test {
     function testGetCoin() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
         address b = priceAndSlippageComputer.getCoin(0);
-        console.log("coin:", b);
-        assert(1==1);
+        console.log("Coin Address:", b);
+        assert(b==0xC2cB1040220768554cf699b0d863A3cd4324ce32);
     }
 
     function testGetUnderlyingCoin() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
         address b = priceAndSlippageComputer.getUnderlyingCoin(0);
-        console.log("ucoin:", b);
-        assert(1==1);
+        console.log("Underlying Coin Address:", b);
+        assert(b==0x6B175474E89094C44Da98b954EedeAC495271d0F);
     }
 
-    function testGetPriceForPoolAndPair() public {
-        uint256 p = priceAndSlippageComputer.getPriceForPoolAndPair("Curve","BUSD");
+    function testGetVirtualPriceForPool() public {
+        uint256 p = priceAndSlippageComputer.getVirtualPriceForPool("Curve","BUSD");
         console.log("price", p);
         assertTrue(p>0);
     }
 
-    function testA() public {
-        priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
-        address a = priceAndSlippageComputer.getAddress();
-        uint256 b = priceAndSlippageComputer.getYtoken();
-        uint256[4] memory c = priceAndSlippageComputer.stored_rates();
-        uint256 p=5;
-        assertTrue(p>0);
-    }
-
-    function testP() public {
+    function testBalanceRates() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
         uint256 p;
         uint256[4] memory rates = priceAndSlippageComputer.stored_rates();

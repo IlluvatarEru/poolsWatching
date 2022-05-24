@@ -21,6 +21,7 @@ interface yERC20 {
     function balanceOf(address arg0) external returns (uint256);
     function getPricePerFullShare() external returns (uint256);
 }
+
 contract PriceAndSlippageComputerContract {
     address owner;
     string ownerName;
@@ -44,12 +45,14 @@ contract PriceAndSlippageComputerContract {
     }
 
     function setUpTokens() public {
+        // This should be done outside of the constructor, we know it before compile time
         tokens["DAI"] = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
         tokens["USDC"] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
         tokens["USDT"] = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
         tokens["BUSD"] = 0x4Fabb145d64652a948d72533023f6E7A623C7C53;
     }
 
+    // Repdroduced from Curve contract
     function stored_rates() public returns(uint256[4] memory){
         uint256[4] memory result;
         uint256 ind=0;
@@ -59,6 +62,7 @@ contract PriceAndSlippageComputerContract {
         }
         return result;
     }
+    // Repdroduced from Curve contract
     function _xp(uint256[4] memory rates) public returns(uint256[4] memory){
         uint256[4] memory result = rates;
         uint256 ind=0;
@@ -69,6 +73,7 @@ contract PriceAndSlippageComputerContract {
         return result;
     }
 
+    // Get the index of the token in all curve arrays
     function getIndexOfToken(string memory token) public view returns (int128) {
         address tokenAddress = tokens[token];
         for(int128 i=0;i<N_COINS;++i){
@@ -79,27 +84,15 @@ contract PriceAndSlippageComputerContract {
         return -1;
     }
 
-    function getIndexOfTokenUint(string memory token) public view returns (uint256) {
-        address tokenAddress = tokens[token];
-        for(int128 i=0;i<N_COINS;++i){
-            if(tokenAddress==stableSwap.underlying_coins(i)){
-                unchecked {
-                    return uint256(i);
-                }
-            }
-        }
-        return -1;
-    }
-
     function getBalanceOfToken(string memory token) public view returns(uint){
         return stableSwap.balances(getIndexOfToken(token));//PRECISION;
     }
 
-    function getXpsOfToken(string memory token) public view returns(uint256){
+    function getXpsOfToken(string memory token) public returns(uint256){
         uint256[4] memory a = _xp(stored_rates());
         int128 ind = getIndexOfToken(token);
-        uint256 ind256 = uint256(ind);
-        return a[ind256];
+        //uint256 ind256 = uint256(ind);
+        return a[0];
     }
 
     function computePrice(string memory tokenFrom, string memory tokenTo, uint256 amount) public returns(uint){
@@ -109,8 +102,9 @@ contract PriceAndSlippageComputerContract {
         uint y = getBalanceOfToken(tokenTo);
         //int k = x*y;
         int A = int(stableSwap.A())/PRECISION_I;
-        return y; //int(amount*PRECISION)* (2*x*int(sqrt(uint(x*(4*A*(k**3)+x*(- 4*A*k + 4*A*x+k)**2))))+8*A*k*x**2 -8*A*x**3+k**3-2*k*x**2);
-        
+        return y; 
+        // TODO: modifffy to actually return
+        //int(amount*PRECISION)* (2*x*int(sqrt(uint(x*(4*A*(k**3)+x*(- 4*A*k + 4*A*x+k)**2))))+8*A*k*x**2 -8*A*x**3+k**3-2*k*x**2);
         //(4*x*int(sqrt(uint(4*A*k**3+x*(-4*A*k+4*A*x+k)**2))));
     }
 
@@ -143,7 +137,6 @@ contract PriceAndSlippageComputerContract {
         return ownerName;
     }
 
-
     function setCurvePoolContractAddress(address _address) public {
         stableSwap = IStableSwap(_address);
     }
@@ -152,11 +145,7 @@ contract PriceAndSlippageComputerContract {
         return address(stableSwap);
     }
 
-    function getPrice() public returns(uint256){
-        return stableSwap.get_virtual_price();
-    }
-
-    function getPriceForPoolAndPair(string memory pool, string memory pair) public returns(uint256) {
+    function getVirtualPriceForPool(string memory pool, string memory pair) public returns(uint256) {
         require((keccak256(abi.encodePacked(pool)))==keccak256("Curve"));
         address poolAddress = pools[pool][pair];
         setCurvePoolContractAddress(poolAddress);
