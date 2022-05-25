@@ -8,28 +8,16 @@ import "../src/CurvePoolsWatching.sol";
 
 contract CurvePoolsWatchingTest is Test {
     PriceAndSlippageComputerContract priceAndSlippageComputer;
-    address curvePoolAddress = 0x79a8C46DeA5aDa233ABaFFD40F3A0A2B1e5A4F27;
+    address curvePoolAddressBUSD = 0x79a8C46DeA5aDa233ABaFFD40F3A0A2B1e5A4F27;
+    address curvePoolAddress3Pool =0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
     
     function setUp() public {
-        priceAndSlippageComputer = new PriceAndSlippageComputerContract();
-        priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddress3Pool);
     }
 
-
-    function testSettingUpAddress() public {
+    function testAddressIsSetup() public {
         address setAddress = priceAndSlippageComputer.getCurvePoolContractAddress();
-        assertTrue(setAddress==curvePoolAddress);
-    }
-
-    function testGetIndex() public {
-        uint daiIndex = priceAndSlippageComputer.getIndexOfToken("DAI");
-        assert(daiIndex == 0);
-    }
-
-    function testGetUnderlyingCoin() public {
-        address b = priceAndSlippageComputer.getUnderlyingCoin(0);
-        console.log("Underlying Coin Address:", b);
-        assert(b==0x6B175474E89094C44Da98b954EedeAC495271d0F);
+        assertTrue(setAddress==curvePoolAddress3Pool);
     }
 
     function testGetVirtualPriceForPool() public {
@@ -38,25 +26,40 @@ contract CurvePoolsWatchingTest is Test {
         assertTrue(p>0);
     }
 
-    function testBalanceRates() public {
-        string[4] memory ttt = ["DAI","USDC","USDT","BUSD"];
-
-        string memory tokenTo = "BUSD";
-        string memory tokenFrom;
-        uint price;
-        uint priceWithFee;
-        uint slippage;
-        for(uint256 i=0;i<4;++i){
-            tokenFrom = ttt[i];
+    function testComputePriceAndSlippage() public {
+        console.log("address",priceAndSlippageComputer.getCurvePoolContractAddress());
+        if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressBUSD){
+            string[4] memory ttt = ["DAI","USDC","USDT","BUSD"];
+            string memory tokenTo = "BUSD";
+            string memory tokenFrom;
+            uint price;
+            uint priceWithFee;
+            uint slippage;
+            for(uint8 i=0;i<4;++i){
+                tokenFrom = ttt[i];
+                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+                console.log("---------------");
+                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+                console.log("Rate 1",tokenFrom, "to BUSD without fee", price);
+                console.log("Rate 1",tokenFrom, "to BUSD with fee", priceWithFee);
+                console.log("Slippage", slippage);
+                assertTrue(price>priceWithFee);
+            }
+        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddress3Pool){
+            string[3] memory tokens = ["DAI","USDC","USDT"];
+            string memory tokenTo = "USDT";
+            string memory tokenFrom;
+            uint price;
+            uint priceWithFee;
+            uint slippage;
+            tokenFrom = tokens[0];
             price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
             console.log("---------------");
             console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
             console.log("Rate 1",tokenFrom, "to BUSD without fee", price);
-            console.log("Rate 1",tokenFrom, "to BUSD with fee", priceWithFee);
-            console.log("Slippage", slippage);
-            assertTrue(price>priceWithFee);
+            assertTrue(price>0);
         }
     }
 
