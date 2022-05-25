@@ -67,31 +67,25 @@ contract CurvePoolsWatchingTest is Test {
 
     function testBalanceRates() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
-        uint256[4] memory rates = priceAndSlippageComputer.stored_rates();
-        uint256[4] memory xps = priceAndSlippageComputer._xp(rates);
         string[4] memory ttt = ["DAI","USDC","USDT","BUSD"];
 
         string memory tokenTo = "BUSD";
         string memory tokenFrom;
         uint price;
         uint priceWithFee;
+        uint slippage;
         for(uint256 i=0;i<4;++i){
             tokenFrom = ttt[i];
             price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
             priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
             console.log("---------------");
             console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
             console.log("Rate 1",tokenFrom, "to BUSD without fee", price);
             console.log("Rate 1",tokenFrom, "to BUSD with fee", priceWithFee);
+            console.log("Slippage", slippage);
             assertTrue(price>priceWithFee);
-        }        
+        }
     }
-
-//openvpn3 session-start --config ~/Downloads/dappnode.ovpn
-
-// forge test --fork-url http://rpcdaemon.erigon.dappnode:8545
-
-// forge test --fork-url http://rpcdaemon.erigon.dappnode:8545 -vvvv --match-test testP
-
 
 }

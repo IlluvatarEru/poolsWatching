@@ -141,7 +141,7 @@ contract PriceAndSlippageComputerContract {
         uint n = N_COINS;
         uint D = getD();
         uint balanceProduct = getBalanceProduct();
-        return (PRECISION*reserveFrom/reserveTo) * (PRECISION*(1+(A*reserveTo*n**(2*n)*balanceProduct)/(D**(n+1))) /((1+(A*reserveFrom*n**(2*n)*balanceProduct)/(D**(n+1))))) / PRECISION;
+        return (PRECISION*reserveFrom * (reserveTo*A*n**(2*n)*balanceProduct + (D**(n+1)))) / (reserveTo * (reserveFrom*A*n**(2*n)*balanceProduct + D**(n+1)));
     }
 
     function computePriceWithFee(string memory tokenFrom, string memory tokenTo) public returns(uint){
@@ -149,8 +149,16 @@ contract PriceAndSlippageComputerContract {
         return priceWithoutFee * (PRECISION - (PRECISION*getFee())/FEE_DENOMINATOR) / PRECISION;
     }
 
-    function slippage(uint xa, uint xb) public returns(uint){
-    
+    function computeSlippage(string memory tokenFrom, string memory tokenTo) public returns(uint){
+        uint256[4] memory rates = stored_rates();
+        uint256[4] memory xps = _xp(rates);
+        uint reserveFrom = xps[getIndexOfToken(tokenFrom)]/PRECISION;
+        uint reserveTo = xps[getIndexOfToken(tokenTo)]/PRECISION;
+        uint A = stableSwap.A();
+        uint n = N_COINS;
+        uint D = getD();
+        uint balanceProduct = getBalanceProduct();
+        return (PRECISION*reserveFrom*2*D**(n+1))/(reserveTo*reserveTo*(A*balanceProduct*n**(2*n)*reserveFrom+D**(n+1)));
     }
 
     function sqrtInt(int256 y) internal pure returns (int z) {
