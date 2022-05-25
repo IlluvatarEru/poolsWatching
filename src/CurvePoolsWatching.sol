@@ -25,24 +25,21 @@ interface yERC20 {
 
 contract PriceAndSlippageComputerContract {
     address owner;
-    string ownerName;
     IStableSwap public stableSwap;
     yERC20 public yerc20;
     // for each AMM there are different pairs
     mapping (string => mapping (string => address)) public pools;
     // map token to their addresses
     mapping (string => address) public tokens;
-    uint128 public N_COINS=4;
+    uint8 public N_COINS=4;
     uint256 public PRECISION = 10 ** 18;
-    int256 public PRECISION_I = 10 ** 18;
     uint256 public FEE_DENOMINATOR = 10 ** 10;
-
     uint256[4] PRECISION_MUL = [uint256(1), uint256(1000000000000), uint256(1000000000000), uint256(1)];
+    int256 public PRECISION_I = 10 ** 18;
 
 
-    constructor(string memory _name){
+    constructor(){
         owner=msg.sender;
-        ownerName=_name;
         pools["Curve"]["BUSD"] = 0x79a8C46DeA5aDa233ABaFFD40F3A0A2B1e5A4F27;
         setUpTokens();
     }
@@ -59,7 +56,7 @@ contract PriceAndSlippageComputerContract {
     function stored_rates() public returns(uint256[4] memory){
         uint256[4] memory result;
         uint256 ind=0;
-        for(int128 i=0; i<int128(N_COINS);++i){
+        for(int8 i=0; i<int8(N_COINS);++i){
             result[ind] = PRECISION_MUL[ind] * yERC20(stableSwap.coins(i)).getPricePerFullShare();
             ind++;
         }
@@ -69,8 +66,8 @@ contract PriceAndSlippageComputerContract {
     function _xp(uint256[4] memory rates) public view returns(uint256[4] memory){
         uint256[4] memory result = rates;
         uint256 ind=0;
-        for(uint128 i=0;i<N_COINS;){
-            result[ind] = result[ind] * stableSwap.balances(int128(i)) / PRECISION;
+        for(uint8 i=0;i<N_COINS;){
+            result[ind] = result[ind] * stableSwap.balances(int8(i)) / PRECISION;
             unchecked {
                 ind++;
                 i++;
@@ -82,15 +79,11 @@ contract PriceAndSlippageComputerContract {
     // Get the index of the token in all curve arrays
     function getIndexOfToken(string memory token) public view returns (uint128) {
         address tokenAddress = tokens[token];
-        for(uint128 i=0;i<N_COINS;++i){
-            if(tokenAddress==stableSwap.underlying_coins(int128(i))){
+        for(uint8 i=0;i<N_COINS;++i){
+            if(tokenAddress==stableSwap.underlying_coins(int8(i))){
                 return i;
             }
         }
-    }
-
-    function getBalanceOfToken(string memory token) public view returns(uint){
-        return stableSwap.balances(int128(getIndexOfToken(token)));
     }
 
     function getXpsOfToken(string memory token) public returns(uint256){
@@ -98,15 +91,6 @@ contract PriceAndSlippageComputerContract {
         uint128 ind = getIndexOfToken(token);
         //uint256 ind256 = uint256(ind);
         return a[ind];
-    }
-
-    function getFee() public view returns(uint){
-        return stableSwap.fee();
-    }
-    
-    
-    function getAmplificationFactor() public view returns(uint){
-        return stableSwap.A();
     }
     
     function getBalanceProduct() public returns(uint256){
@@ -123,10 +107,10 @@ contract PriceAndSlippageComputerContract {
     D is the sum of the balances
      */
     function getD() public returns(uint){
-        uint s = 0;
+        uint256 s = 0;
         uint256[4] memory rates = stored_rates();
         uint256[4] memory xps = _xp(rates);
-        for(uint128 i=0;i<N_COINS;++i){
+        for(uint8 i=0;i<N_COINS;++i){
             s+=xps[i]/PRECISION;
         }
         return s;
@@ -135,29 +119,29 @@ contract PriceAndSlippageComputerContract {
     function computePrice(string memory tokenFrom, string memory tokenTo) public returns(uint){
         uint256[4] memory rates = stored_rates();
         uint256[4] memory xps = _xp(rates);
-        uint reserveFrom = xps[getIndexOfToken(tokenFrom)]/PRECISION;
-        uint reserveTo = xps[getIndexOfToken(tokenTo)]/PRECISION;
-        uint A = stableSwap.A();
-        uint n = N_COINS;
-        uint D = getD();
-        uint balanceProduct = getBalanceProduct();
+        uint256 reserveFrom = xps[getIndexOfToken(tokenFrom)]/PRECISION;
+        uint256 reserveTo = xps[getIndexOfToken(tokenTo)]/PRECISION;
+        uint256 A = stableSwap.A();
+        uint256 n = N_COINS;
+        uint256 D = getD();
+        uint256 balanceProduct = getBalanceProduct();
         return (PRECISION*reserveFrom * (reserveTo*A*n**(2*n)*balanceProduct + (D**(n+1)))) / (reserveTo * (reserveFrom*A*n**(2*n)*balanceProduct + D**(n+1)));
     }
 
     function computePriceWithFee(string memory tokenFrom, string memory tokenTo) public returns(uint){
         uint256 priceWithoutFee = computePrice(tokenFrom, tokenTo);
-        return priceWithoutFee * (PRECISION - (PRECISION*getFee())/FEE_DENOMINATOR) / PRECISION;
+        return priceWithoutFee * (PRECISION - (PRECISION*stableSwap.fee())/FEE_DENOMINATOR) / PRECISION;
     }
 
     function computeSlippage(string memory tokenFrom, string memory tokenTo) public returns(uint){
         uint256[4] memory rates = stored_rates();
         uint256[4] memory xps = _xp(rates);
-        uint reserveFrom = xps[getIndexOfToken(tokenFrom)]/PRECISION;
-        uint reserveTo = xps[getIndexOfToken(tokenTo)]/PRECISION;
-        uint A = stableSwap.A();
-        uint n = N_COINS;
-        uint D = getD();
-        uint balanceProduct = getBalanceProduct();
+        uint256 reserveFrom = xps[getIndexOfToken(tokenFrom)]/PRECISION;
+        uint256 reserveTo = xps[getIndexOfToken(tokenTo)]/PRECISION;
+        uint256 A = stableSwap.A();
+        uint256 n = N_COINS;
+        uint256 D = getD();
+        uint256 balanceProduct = getBalanceProduct();
         return (PRECISION*reserveFrom*2*D**(n+1))/(reserveTo*reserveTo*(A*balanceProduct*n**(2*n)*reserveFrom+D**(n+1)));
     }
 
@@ -165,18 +149,18 @@ contract PriceAndSlippageComputerContract {
         return int(sqrt(uint256(y)));
     }
 
-    function sqrt(uint256 y) internal pure returns (uint z) {
-    if (y > 3) {
-        z = y;
-        uint x = y / 2 + 1;
-        while (x < z) {
-            z = x;
-            x = (y / x + x) / 2;
+    function sqrt(uint256 y) internal pure returns (uint256 z) {
+        if (y > 3) {
+            z = y;
+            uint256 x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
         }
-    } else if (y != 0) {
-        z = 1;
     }
-}
 
     function getBalance(int128 ind) public view returns(uint){
         return stableSwap.balances(ind);
@@ -190,10 +174,6 @@ contract PriceAndSlippageComputerContract {
         return stableSwap.underlying_coins(ind);
     }
 
-    function getOwnerName() public view returns(string memory) {
-        return ownerName;
-    }
-
     function setCurvePoolContractAddress(address _address) public {
         stableSwap = IStableSwap(_address);
     }
@@ -205,7 +185,6 @@ contract PriceAndSlippageComputerContract {
     function getVirtualPriceForPool(string memory pool, string memory pair) public returns(uint256) {
         require((keccak256(abi.encodePacked(pool)))==keccak256("Curve"));
         address poolAddress = pools[pool][pair];
-        setCurvePoolContractAddress(poolAddress);
         return stableSwap.get_virtual_price();
     }
 
