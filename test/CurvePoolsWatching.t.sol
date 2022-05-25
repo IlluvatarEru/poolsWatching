@@ -67,21 +67,24 @@ contract CurvePoolsWatchingTest is Test {
 
     function testBalanceRates() public {
         priceAndSlippageComputer.setCurvePoolContractAddress(curvePoolAddress);
-        uint256 p;
         uint256[4] memory rates = priceAndSlippageComputer.stored_rates();
         uint256[4] memory xps = priceAndSlippageComputer._xp(rates);
         string[4] memory ttt = ["DAI","USDC","USDT","BUSD"];
-        console.log(priceAndSlippageComputer.computePriceFromParameters(14087404581786,500,4787106));
+
+        string memory tokenTo = "BUSD";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
         for(uint256 i=0;i<4;++i){
-            string memory token = ttt[i];
-            p = priceAndSlippageComputer.computePrice("BUSD",token);
+            tokenFrom = ttt[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
             console.log("---------------");
-            console.log("token", token);
-            console.log("price", uint(p));
-            console.log("Balance",xps[i]/10 ** 18);
-            console.log("k",(xps[i]/10 ** 18)*(xps[3]/10 ** 18));
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate 1",tokenFrom, "to BUSD without fee", price);
+            console.log("Rate 1",tokenFrom, "to BUSD with fee", priceWithFee);
+            assertTrue(price>priceWithFee);
         }        
-        assertTrue(uint(p)>0);
     }
 
 //openvpn3 session-start --config ~/Downloads/dappnode.ovpn
