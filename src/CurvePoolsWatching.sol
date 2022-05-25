@@ -143,6 +143,7 @@ contract PriceAndSlippageComputerContract {
                 revert("Address not supported.");
             }
         }
+        return 0;
     }
 
     function getXpsOfToken(string memory token) internal returns(uint256){
@@ -237,7 +238,7 @@ contract PriceAndSlippageComputerContract {
         return address(stableSwap);
     }
 
-    function getVirtualPriceForPool(string memory pool, string memory pair) public returns(uint256) {
+    function getVirtualPriceForPool(string memory pool) public returns(uint256) {
         require((keccak256(abi.encodePacked(pool)))==keccak256("Curve"));
         return stableSwap.get_virtual_price();
     }
