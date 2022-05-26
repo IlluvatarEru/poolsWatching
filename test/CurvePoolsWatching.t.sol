@@ -33,8 +33,9 @@ contract CurvePoolsWatchingTest is Test {
     }
 
     function testComputePriceAndSlippage() public {
-        console.log("address",priceAndSlippageComputer.getCurvePoolContractAddress());
-        if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressBUSD){
+        address curvePool = priceAndSlippageComputer.getCurvePoolContractAddress();
+        console.log("address",curvePool);
+        if(curvePool==curvePoolAddressBUSD){
             string[4] memory tokens = ["DAI","USDC","USDT","BUSD"];
             string memory tokenTo = "BUSD";
             string memory tokenFrom;
@@ -53,9 +54,9 @@ contract CurvePoolsWatchingTest is Test {
                 console.log("Slippage", slippage);
                 assertTrue(price>priceWithFee);
             }
-        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddress3Pool || 
-        priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressUSDT || 
-        priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressAAVE){
+        }else if(curvePool==curvePoolAddress3Pool || 
+        curvePool==curvePoolAddressUSDT || 
+        curvePool==curvePoolAddressAAVE){
             string[3] memory tokens = ["DAI","USDC","USDT"];
             string memory tokenTo = "USDT";
             string memory tokenFrom;
@@ -74,7 +75,7 @@ contract CurvePoolsWatchingTest is Test {
                 console.log("Slippage", slippage);
                 assertTrue(price>priceWithFee);
             }
-        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressEURS){
+        }else if(curvePool==curvePoolAddressEURS){
             string[2] memory tokens = ["EURS","sEUR"];
             string memory tokenTo = "EURS";
             string memory tokenFrom;
@@ -94,7 +95,7 @@ contract CurvePoolsWatchingTest is Test {
                 assertTrue(price>priceWithFee);
             }
 
-        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressSUSD){
+        }else if(curvePool==curvePoolAddressSUSD){
             string[4] memory tokens = ["sUSD", "DAI","USDC","USDT"];
             string memory tokenTo = "USDC";
             string memory tokenFrom;
@@ -113,7 +114,7 @@ contract CurvePoolsWatchingTest is Test {
                 console.log("Slippage", slippage);
                 assertTrue(price>0);
             }
-        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressAETH){
+        }else if(curvePool==curvePoolAddressAETH){
             string[2] memory tokens = ["ETH","aETH"];
             string memory tokenTo = "aETH";
             string memory tokenFrom;
