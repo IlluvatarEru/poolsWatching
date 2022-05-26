@@ -11,12 +11,12 @@ contract CurvePoolsWatchingTest is Test {
     
     function setUp() public {
         // Change the address to test other pools
-        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressBUSD);
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressUSDT);
     }
 
     function testAddressIsSetup() public {
         address setAddress = priceAndSlippageComputer.getCurvePoolContractAddress();
-        assertTrue(setAddress==curvePoolAddressBUSD || setAddress==curvePoolAddress3Pool);
+        assertTrue(setAddress==curvePoolAddressBUSD || setAddress==curvePoolAddress3Pool || setAddress==curvePoolAddressUSDT);
     }
 
     function testGetVirtualPriceForPool() public {
@@ -46,7 +46,7 @@ contract CurvePoolsWatchingTest is Test {
                 console.log("Slippage", slippage);
                 assertTrue(price>priceWithFee);
             }
-        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddress3Pool){
+        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddress3Pool || priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressUSDT){
             string[3] memory tokens = ["DAI","USDC","USDT"];
             string memory tokenTo = "USDT";
             string memory tokenFrom;
@@ -67,5 +67,4 @@ contract CurvePoolsWatchingTest is Test {
             }
         }
     }
-
 }
