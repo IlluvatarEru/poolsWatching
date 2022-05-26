@@ -30,13 +30,12 @@ address constant curvePoolAddress3Pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF
 
 
 contract PriceAndSlippageComputerContract {
-    address private owner;
-    IStableSwap private stableSwap;
-    yERC20 private yerc20;
-    uint256 public PRECISION;
-    uint256 public FEE_DENOMINATOR;
-    uint256 public N_COINS;
-    uint256[] public PRECISION_MUL;
+    address internal owner;
+    IStableSwap internal stableSwap;
+    uint256 internal PRECISION;
+    uint256 internal FEE_DENOMINATOR;
+    uint256 internal N_COINS;
+    uint256[] internal PRECISION_MUL;
 
     constructor(address curvePool){
         owner=msg.sender;
