@@ -31,15 +31,19 @@ interface cERC20 {
     function exchangeRateStored() external returns (uint256);
 }
 
+interface aETH {
+    function ratio() external returns(uint256);
+}
+
 address constant curvePoolAddressBUSD = 0x79a8C46DeA5aDa233ABaFFD40F3A0A2B1e5A4F27;
 address constant curvePoolAddress3Pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7;
 address constant curvePoolAddressUSDT = 0x52EA46506B9CC5Ef470C5bf89f17Dc28bB35D85C;
 address constant curvePoolAddressAAVE = 0xDeBF20617708857ebe4F679508E7b7863a8A8EeE;
 address constant curvePoolAddressEURS = 0x0Ce6a5fF5217e38315f87032CF90686C96627CAA;
 address constant curvePoolAddressSUSD = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
+address constant curvePoolAddressAETH = 0xA96A65c051bF88B4095Ee1f2451C2A9d43F53Ae2;
 
 //TODO: Handle the below stable swaps
-address constant curvePoolAddressAEWTH = 0xA96A65c051bF88B4095Ee1f2451C2A9d43F53Ae2;
 address constant curvePoolAddressCompound = 0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56;
 address constant curvePoolAddressHBTC = 0x4CA9b3063Ec5866A4B82E437059D2C43d1be596F;
 address constant curvePoolAddressIB = 0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF;
@@ -59,8 +63,10 @@ contract PriceAndSlippageComputerContract {
     uint256 internal PRECISION;
     uint256 internal FEE_DENOMINATOR;
     uint256 internal N_COINS;
+    uint256 internal LENDING_PRECISION;
     uint256[] internal PRECISION_MUL;
     bool[] internal USE_LENDING;
+    
 
     constructor(address curvePool){
         owner=msg.sender;
@@ -86,11 +92,13 @@ contract PriceAndSlippageComputerContract {
             FEE_DENOMINATOR = 10 ** 10;
             PRECISION_MUL = [1, 1000000000000, 1000000000000];
             USE_LENDING =[true, true, false];
-        } else if(curvePool==curvePoolAddressEURS){
+        } else if(curvePool==curvePoolAddressEURS ||
+                    curvePool==curvePoolAddressAETH){
             N_COINS = 2;
             PRECISION = 10 ** 18;
             FEE_DENOMINATOR = 10 ** 10;
             PRECISION_MUL = [1000000000000, 1];
+            LENDING_PRECISION = 10 ** 18;
         }else{
             revert("Cannot setup variables, address not supported.");
         }
@@ -99,6 +107,7 @@ contract PriceAndSlippageComputerContract {
     function setCurvePoolContractAddress(address _address) internal {
         stableSwap = IStableSwap(_address);
     }
+
     function getAddressOfToken(string memory token) internal pure returns (address){
         bytes32 tokenHash = keccak256(bytes(token));
         if(tokenHash==keccak256(bytes("DAI"))){
@@ -115,6 +124,10 @@ contract PriceAndSlippageComputerContract {
             return 0xD71eCFF9342A5Ced620049e616c5035F1dB98620;
         }else if(tokenHash==keccak256(bytes("sUSD"))){
             return 0x57Ab1ec28D129707052df4dF418D58a2D46d5f51;
+        }else if(tokenHash==keccak256(bytes("aETH"))){
+            return 0xE95A203B1a91a908F9B9CE46459d101078c2c3cb;
+        }else if(tokenHash==keccak256(bytes("ETH"))){
+            return 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
         }else{
             revert("Token not supported.");
         }
@@ -158,11 +171,15 @@ contract PriceAndSlippageComputerContract {
             return result;
         }else if(curvePool==curvePoolAddressAAVE){
             result = PRECISION_MUL;
+        }else if(curvePool==curvePoolAddressAETH){
+            result[0] = PRECISION;
+            result[1] = PRECISION * LENDING_PRECISION / aETH(stableSwap.coins(uint256(1))).ratio();
         }else{
             revert("Cannot get rates, address not supported.");
         }
         return result;
     }
+
     // Repdroduced from Curve contract
     function _xp(uint256[] memory rates) internal view returns(uint256[] memory){
         address curvePool = getCurvePoolContractAddress();
@@ -174,7 +191,8 @@ contract PriceAndSlippageComputerContract {
                 curvePool==curvePoolAddressSUSD){
                 result[ind] = result[ind] * stableSwap.balances(int8(i)) / PRECISION;
             }else if(curvePool==curvePoolAddress3Pool  ||
-                curvePool==curvePoolAddressEURS){
+                curvePool==curvePoolAddressEURS||
+                curvePool==curvePoolAddressAETH){
                 result[ind] = result[ind] * stableSwap.balances(i) / PRECISION;
             }
             unchecked {
@@ -200,7 +218,8 @@ contract PriceAndSlippageComputerContract {
                 }
             }else if(curvePool==curvePoolAddress3Pool|| 
                     curvePool==curvePoolAddressAAVE ||
-                    curvePool==curvePoolAddressEURS){
+                    curvePool==curvePoolAddressEURS ||
+                    curvePool==curvePoolAddressAETH){
                 if(tokenAddress==stableSwap.coins(i)){
                     delete tokenAddress;
                     return i;
@@ -254,8 +273,8 @@ contract PriceAndSlippageComputerContract {
         uint256 D = getD();
         uint256 balanceProduct = getBalanceProduct();
         return  (PRECISION*reserveFrom * (reserveTo*A*n**(2*n)*balanceProduct + (D**(n+1)))) / (reserveTo * (reserveFrom*A*n**(2*n)*balanceProduct + D**(n+1)));
-        
-        //return 5;
+    
+        //return reserveFrom;
     }
 
     function computePriceWithFee(string memory tokenFrom, string memory tokenTo) public returns(uint){

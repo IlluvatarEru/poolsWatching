@@ -11,7 +11,7 @@ contract CurvePoolsWatchingTest is Test {
     
     function setUp() public {
         // Change the address to test other pools
-        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressSUSD);
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressAETH);
     }
 
     function testAddressIsSetup() public {
@@ -21,7 +21,8 @@ contract CurvePoolsWatchingTest is Test {
         setAddress==curvePoolAddressUSDT ||
         setAddress==curvePoolAddressAAVE ||
         setAddress==curvePoolAddressEURS ||
-        setAddress==curvePoolAddressSUSD
+        setAddress==curvePoolAddressSUSD ||
+        setAddress==curvePoolAddressAETH
         );
     }
 
@@ -111,6 +112,25 @@ contract CurvePoolsWatchingTest is Test {
                 console.log("Rate with fee", priceWithFee);
                 console.log("Slippage", slippage);
                 assertTrue(price>0);
+            }
+        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressAETH){
+            string[2] memory tokens = ["ETH","aETH"];
+            string memory tokenTo = "aETH";
+            string memory tokenFrom;
+            uint price;
+            uint priceWithFee;
+            uint slippage;
+            for(uint8 i=0;i<2;++i){
+                tokenFrom = tokens[i];
+                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+                console.log("---------------");
+                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+                console.log("Rate without fee", price);
+                console.log("Rate with fee", priceWithFee);
+                console.log("Slippage", slippage);
+                assertTrue(price>priceWithFee);
             }
         }
     }
