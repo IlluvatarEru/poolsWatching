@@ -11,7 +11,7 @@ contract CurvePoolsWatchingTest is Test {
     
     function setUp() public {
         // Change the address to test other pools
-        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressEURS);
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressSUSD);
     }
 
     function testAddressIsSetup() public {
@@ -20,12 +20,14 @@ contract CurvePoolsWatchingTest is Test {
         setAddress==curvePoolAddress3Pool || 
         setAddress==curvePoolAddressUSDT ||
         setAddress==curvePoolAddressAAVE ||
-        setAddress==curvePoolAddressEURS);
+        setAddress==curvePoolAddressEURS ||
+        setAddress==curvePoolAddressSUSD
+        );
     }
 
     function testGetVirtualPriceForPool() public {
         uint256 p = priceAndSlippageComputer.getVirtualPriceForPool("Curve");
-        console.log("price", p);
+        console.log("Virtual Price", p);
         assertTrue(p>0);
     }
 
@@ -91,6 +93,25 @@ contract CurvePoolsWatchingTest is Test {
                 assertTrue(price>priceWithFee);
             }
 
+        }else if(priceAndSlippageComputer.getCurvePoolContractAddress()==curvePoolAddressSUSD){
+            string[4] memory tokens = ["sUSD", "DAI","USDC","USDT"];
+            string memory tokenTo = "USDC";
+            string memory tokenFrom;
+            uint price;
+            uint priceWithFee;
+            uint slippage;
+            for(uint8 i=0;i<4;++i){
+                tokenFrom = tokens[i];
+                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+                console.log("---------------");
+                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+                console.log("Rate without fee", price);
+                console.log("Rate with fee", priceWithFee);
+                console.log("Slippage", slippage);
+                assertTrue(price>0);
+            }
         }
     }
 }

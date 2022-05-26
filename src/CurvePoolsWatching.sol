@@ -36,6 +36,7 @@ address constant curvePoolAddress3Pool = 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF
 address constant curvePoolAddressUSDT = 0x52EA46506B9CC5Ef470C5bf89f17Dc28bB35D85C;
 address constant curvePoolAddressAAVE = 0xDeBF20617708857ebe4F679508E7b7863a8A8EeE;
 address constant curvePoolAddressEURS = 0x0Ce6a5fF5217e38315f87032CF90686C96627CAA;
+address constant curvePoolAddressSUSD = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
 
 //TODO: Handle the below stable swaps
 address constant curvePoolAddressAEWTH = 0xA96A65c051bF88B4095Ee1f2451C2A9d43F53Ae2;
@@ -48,7 +49,6 @@ address constant curvePoolAddressRen = 0x93054188d876f558f4a66B2EF1d97d16eDf0895
 address constant curvePoolAddressSAAVE = 0xEB16Ae0052ed37f479f7fe63849198Df1765a733;
 address constant curvePoolAddressSBTC = 0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714;
 address constant curvePoolAddressSETH = 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022;
-address constant curvePoolAddressSUSD = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
 address constant curvePoolAddressY = 0x45F783CCE6B7FF23B2ab2D70e416cdb7D6055f51;
 address constant curvePoolAddressYv2 = 0x8925D9d9B4569D737a48499DeF3f67BaA5a144b9;
 
@@ -60,6 +60,7 @@ contract PriceAndSlippageComputerContract {
     uint256 internal FEE_DENOMINATOR;
     uint256 internal N_COINS;
     uint256[] internal PRECISION_MUL;
+    bool[] internal USE_LENDING;
 
     constructor(address curvePool){
         owner=msg.sender;
@@ -68,21 +69,24 @@ contract PriceAndSlippageComputerContract {
     }
 
     function setUpVariables() internal {
-        if(getCurvePoolContractAddress()==curvePoolAddressBUSD){
+        address curvePool = getCurvePoolContractAddress();
+        if(curvePool==curvePoolAddressBUSD || curvePool==curvePoolAddressSUSD){
             N_COINS = 4;
             PRECISION = 10 ** 18;
             FEE_DENOMINATOR = 10 ** 10;
             PRECISION_MUL = [uint256(1), uint256(1000000000000), uint256(1000000000000), uint256(1)];
+            USE_LENDING =[false, false, false,false];
         }else if(
-            getCurvePoolContractAddress()==curvePoolAddress3Pool || 
-            getCurvePoolContractAddress()==curvePoolAddressUSDT || 
-            getCurvePoolContractAddress()==curvePoolAddressAAVE
+            curvePool==curvePoolAddress3Pool || 
+            curvePool==curvePoolAddressUSDT || 
+            curvePool==curvePoolAddressAAVE
         ){
             N_COINS = 3;
             PRECISION = 10 ** 18;
             FEE_DENOMINATOR = 10 ** 10;
             PRECISION_MUL = [1, 1000000000000, 1000000000000];
-        } else if(getCurvePoolContractAddress()==curvePoolAddressEURS){
+            USE_LENDING =[true, true, false];
+        } else if(curvePool==curvePoolAddressEURS){
             N_COINS = 2;
             PRECISION = 10 ** 18;
             FEE_DENOMINATOR = 10 ** 10;
@@ -109,6 +113,8 @@ contract PriceAndSlippageComputerContract {
             return 0xdB25f211AB05b1c97D595516F45794528a807ad8;
         }else if(tokenHash==keccak256(bytes("sEUR"))){
             return 0xD71eCFF9342A5Ced620049e616c5035F1dB98620;
+        }else if(tokenHash==keccak256(bytes("sUSD"))){
+            return 0x57Ab1ec28D129707052df4dF418D58a2D46d5f51;
         }else{
             revert("Token not supported.");
         }
@@ -117,7 +123,8 @@ contract PriceAndSlippageComputerContract {
     // Repdroduced from Curve contract
     function stored_rates() internal returns(uint256[] memory){
         uint256[] memory result = new uint[](N_COINS);
-        if(getCurvePoolContractAddress()==curvePoolAddressBUSD){
+        address curvePool = getCurvePoolContractAddress();
+        if(curvePool==curvePoolAddressBUSD){
             uint256 ind=0;
             for(int8 i=0; i<int256(N_COINS);++i){
                 result[ind] = PRECISION_MUL[ind] * yERC20(stableSwap.coins(i)).getPricePerFullShare();
@@ -125,20 +132,20 @@ contract PriceAndSlippageComputerContract {
             }
             delete ind;
             return result;
-        }else if(getCurvePoolContractAddress()==curvePoolAddress3Pool){
+        }else if(curvePool==curvePoolAddress3Pool){
             result[0] = uint256(1000000000000000000);
             result[1] = uint256(1000000000000000000000000000000);
             result[2] = uint256(1000000000000000000000000000000);
-        }else if(getCurvePoolContractAddress()==curvePoolAddressEURS){
+        }else if(curvePool==curvePoolAddressEURS){
             result[0] = 10000000000000000000000000000000000;
             result[1] = 1000000000000000000;
-        }else if(getCurvePoolContractAddress()==curvePoolAddressUSDT){
-            bool[3] memory useLending =[true, true, false];
+        }else if(curvePool==curvePoolAddressUSDT ||
+                curvePool==curvePoolAddressSUSD){
             uint256 ind=0;
             result = PRECISION_MUL;
             for(int8 i=0; i<int256(N_COINS);++i){
                 uint256 rate = PRECISION;
-                if(useLending[ind]){
+                if(USE_LENDING[ind]){
                     rate = cERC20(stableSwap.coins(i)).exchangeRateStored();
                     uint256 supply_rate  = cERC20(stableSwap.coins(i)).supplyRatePerBlock();
                     uint256 old_block = cERC20(stableSwap.coins(i)).accrualBlockNumber();
@@ -149,7 +156,7 @@ contract PriceAndSlippageComputerContract {
             }
             delete ind;
             return result;
-        }else if(getCurvePoolContractAddress()==curvePoolAddressAAVE){
+        }else if(curvePool==curvePoolAddressAAVE){
             result = PRECISION_MUL;
         }else{
             revert("Cannot get rates, address not supported.");
@@ -158,14 +165,16 @@ contract PriceAndSlippageComputerContract {
     }
     // Repdroduced from Curve contract
     function _xp(uint256[] memory rates) internal view returns(uint256[] memory){
+        address curvePool = getCurvePoolContractAddress();
         uint256[] memory result = rates;
         uint256 ind=0;
         for(uint8 i=0;i<N_COINS;){
-            if(getCurvePoolContractAddress()==curvePoolAddressBUSD || 
-                getCurvePoolContractAddress()==curvePoolAddressUSDT){
+            if(curvePool==curvePoolAddressBUSD || 
+                curvePool==curvePoolAddressUSDT ||
+                curvePool==curvePoolAddressSUSD){
                 result[ind] = result[ind] * stableSwap.balances(int8(i)) / PRECISION;
-            }else if(getCurvePoolContractAddress()==curvePoolAddress3Pool  ||
-                getCurvePoolContractAddress()==curvePoolAddressEURS){
+            }else if(curvePool==curvePoolAddress3Pool  ||
+                curvePool==curvePoolAddressEURS){
                 result[ind] = result[ind] * stableSwap.balances(i) / PRECISION;
             }
             unchecked {
@@ -179,17 +188,19 @@ contract PriceAndSlippageComputerContract {
 
     // Get the index of the token in all curve arrays
     function getIndexOfToken(string memory token) internal view returns (uint128) {
+        address curvePool = getCurvePoolContractAddress();
         address tokenAddress = getAddressOfToken(token);
         for(uint8 i=0;i<N_COINS;){
-            if(getCurvePoolContractAddress()==curvePoolAddressBUSD || 
-                    getCurvePoolContractAddress()==curvePoolAddressUSDT) {
+            if(curvePool==curvePoolAddressBUSD || 
+                    curvePool==curvePoolAddressUSDT ||
+                    curvePool==curvePoolAddressSUSD) {
                 if(tokenAddress==stableSwap.underlying_coins(int8(i))){
                     delete tokenAddress;
                     return i;
                 }
-            }else if(getCurvePoolContractAddress()==curvePoolAddress3Pool|| 
-                    getCurvePoolContractAddress()==curvePoolAddressAAVE ||
-                    getCurvePoolContractAddress()==curvePoolAddressEURS){
+            }else if(curvePool==curvePoolAddress3Pool|| 
+                    curvePool==curvePoolAddressAAVE ||
+                    curvePool==curvePoolAddressEURS){
                 if(tokenAddress==stableSwap.coins(i)){
                     delete tokenAddress;
                     return i;
@@ -243,6 +254,8 @@ contract PriceAndSlippageComputerContract {
         uint256 D = getD();
         uint256 balanceProduct = getBalanceProduct();
         return  (PRECISION*reserveFrom * (reserveTo*A*n**(2*n)*balanceProduct + (D**(n+1)))) / (reserveTo * (reserveFrom*A*n**(2*n)*balanceProduct + D**(n+1)));
+        
+        //return 5;
     }
 
     function computePriceWithFee(string memory tokenFrom, string memory tokenTo) public returns(uint){
