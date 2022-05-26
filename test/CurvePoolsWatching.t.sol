@@ -11,7 +11,7 @@ contract CurvePoolsWatchingTest is Test {
     
     function setUp() public {
         // Change the address to test other pools
-        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddress3Pool);
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressBUSD);
     }
 
     function testAddressIsSetup() public {
