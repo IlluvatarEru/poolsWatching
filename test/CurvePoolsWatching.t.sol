@@ -11,7 +11,7 @@ contract CurvePoolsWatchingTest is Test {
     
     function setUp() public {
         // Change the address to test other pools
-        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressLINK);
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressSETH);
     }
 
     function testAddressIsSetup() public {
@@ -24,7 +24,8 @@ contract CurvePoolsWatchingTest is Test {
         curvePool==curvePoolAddressSUSD ||
         curvePool==curvePoolAddressAETH ||
         curvePool==curvePoolAddressCompound ||
-        curvePool==curvePoolAddressLINK
+        curvePool==curvePoolAddressLINK ||
+        curvePool==curvePoolAddressSETH
         );
     }
 
@@ -156,6 +157,25 @@ contract CurvePoolsWatchingTest is Test {
         }else if(curvePool==curvePoolAddressLINK){
             string[2] memory tokens = ["LINK","sLINK"];
             string memory tokenTo = "sLINK";
+            string memory tokenFrom;
+            uint price;
+            uint priceWithFee;
+            uint slippage;
+            for(uint8 i=0;i<2;++i){
+                tokenFrom = tokens[i];
+                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+                console.log("---------------");
+                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+                console.log("Rate without fee", price);
+                console.log("Rate with fee", priceWithFee);
+                console.log("Slippage", slippage);
+                assertTrue(price>priceWithFee);
+            }
+        }else if(curvePool==curvePoolAddressSETH){
+            string[2] memory tokens = ["ETH","sETH"];
+            string memory tokenTo = "sETH";
             string memory tokenFrom;
             uint price;
             uint priceWithFee;

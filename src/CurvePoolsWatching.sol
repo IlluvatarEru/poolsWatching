@@ -44,15 +44,17 @@ address constant curvePoolAddressSUSD = 0xA5407eAE9Ba41422680e2e00537571bcC53efB
 address constant curvePoolAddressAETH = 0xA96A65c051bF88B4095Ee1f2451C2A9d43F53Ae2;
 address constant curvePoolAddressCompound = 0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56;
 address constant curvePoolAddressLINK = 0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0;
+address constant curvePoolAddressSETH = 0xc5424B857f758E906013F3555Dad202e4bdB4567;
+
 
 //TODO: Handle the below stable swaps
+address constant curvePoolAddressStETH = 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022;
 address constant curvePoolAddressHBTC = 0x4CA9b3063Ec5866A4B82E437059D2C43d1be596F;
 address constant curvePoolAddressIB = 0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF;
 address constant curvePoolAddressPax = 0x06364f10B501e868329afBc005b3492902d6C763;
 address constant curvePoolAddressRen = 0x93054188d876f558f4a66B2EF1d97d16eDf0895B;
 address constant curvePoolAddressSAAVE = 0xEB16Ae0052ed37f479f7fe63849198Df1765a733;
 address constant curvePoolAddressSBTC = 0x7fC77b5c7614E1533320Ea6DDc2Eb61fa00A9714;
-address constant curvePoolAddressSETH = 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022;
 address constant curvePoolAddressY = 0x45F783CCE6B7FF23B2ab2D70e416cdb7D6055f51;
 address constant curvePoolAddressYv2 = 0x8925D9d9B4569D737a48499DeF3f67BaA5a144b9;
 
@@ -93,7 +95,8 @@ contract PriceAndSlippageComputerContract {
             PRECISION_MUL = [1, 1000000000000, 1000000000000];
             USE_LENDING =[true, true, false];
         } else if(curvePool==curvePoolAddressEURS ||
-                    curvePool==curvePoolAddressAETH){
+                    curvePool==curvePoolAddressAETH ||
+                    curvePool==curvePoolAddressSETH){
             N_COINS = 2;
             PRECISION = 10 ** 18;
             FEE_DENOMINATOR = 10 ** 10;
@@ -144,6 +147,8 @@ contract PriceAndSlippageComputerContract {
             return 0x514910771AF9Ca656af840dff83E8264EcF986CA;
         }else if(tokenHash==keccak256(bytes("sLINK"))){
             return 0xbBC455cb4F1B9e4bFC4B73970d360c8f032EfEE6;
+        }else if(tokenHash==keccak256(bytes("sETH"))){
+            return 0x5e74C9036fb86BD7eCdcb084a0673EFc32eA31cb;
         }else{
             revert("Token not supported.");
         }
@@ -187,7 +192,8 @@ contract PriceAndSlippageComputerContract {
             return result;
         }else if(curvePool==curvePoolAddressAAVE){
             result = PRECISION_MUL;
-        }else if(curvePool==curvePoolAddressLINK){
+        }else if(curvePool==curvePoolAddressLINK ||
+                    curvePool==curvePoolAddressSETH){
             result[0] = 1;
             result[1] = 1;
         }else if(curvePool==curvePoolAddressAETH){
@@ -225,7 +231,8 @@ contract PriceAndSlippageComputerContract {
                     i++;
                 }
             }
-        }else if(curvePool==curvePoolAddressLINK){
+        }else if(curvePool==curvePoolAddressLINK||
+                    curvePool==curvePoolAddressSETH){
             for(uint8 i=0;i<N_COINS;){
                 result[ind] = stableSwap.balances(i);
                 unchecked {
@@ -254,7 +261,8 @@ contract PriceAndSlippageComputerContract {
                     curvePool==curvePoolAddressAAVE ||
                     curvePool==curvePoolAddressEURS ||
                     curvePool==curvePoolAddressAETH ||
-                    curvePool==curvePoolAddressLINK){
+                    curvePool==curvePoolAddressLINK ||
+                    curvePool==curvePoolAddressSETH){
                 if(tokenAddress==stableSwap.coins(i)){
                     delete tokenAddress;
                     return i;
@@ -308,7 +316,7 @@ contract PriceAndSlippageComputerContract {
         uint256 balanceProduct = getBalanceProduct();
         return  (PRECISION*reserveFrom * (reserveTo*A*n**(2*n)*balanceProduct + (D**(n+1)))) / (reserveTo * (reserveFrom*A*n**(2*n)*balanceProduct + D**(n+1)));
     
-    //    return reserveFrom;
+    //    return xps[1];
     }
 
     function computePriceWithFee(string memory tokenFrom, string memory tokenTo) public returns(uint){
