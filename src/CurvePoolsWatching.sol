@@ -42,9 +42,9 @@ address constant curvePoolAddressAAVE = 0xDeBF20617708857ebe4F679508E7b7863a8A8E
 address constant curvePoolAddressEURS = 0x0Ce6a5fF5217e38315f87032CF90686C96627CAA;
 address constant curvePoolAddressSUSD = 0xA5407eAE9Ba41422680e2e00537571bcC53efBfD;
 address constant curvePoolAddressAETH = 0xA96A65c051bF88B4095Ee1f2451C2A9d43F53Ae2;
+address constant curvePoolAddressCompound = 0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56;
 
 //TODO: Handle the below stable swaps
-address constant curvePoolAddressCompound = 0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56;
 address constant curvePoolAddressHBTC = 0x4CA9b3063Ec5866A4B82E437059D2C43d1be596F;
 address constant curvePoolAddressIB = 0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF;
 address constant curvePoolAddressLINK = 0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0;
@@ -99,6 +99,13 @@ contract PriceAndSlippageComputerContract {
             FEE_DENOMINATOR = 10 ** 10;
             PRECISION_MUL = [1000000000000, 1];
             LENDING_PRECISION = 10 ** 18;
+         }else if(curvePool==curvePoolAddressCompound){
+            N_COINS = 2;
+            PRECISION = 10 ** 18;
+            FEE_DENOMINATOR = 10 ** 10;
+            PRECISION_MUL = [1, 1000000000000];
+            LENDING_PRECISION = 10 ** 18;
+            USE_LENDING =[true, true];
         }else{
             revert("Cannot setup variables, address not supported.");
         }
@@ -153,7 +160,8 @@ contract PriceAndSlippageComputerContract {
             result[0] = 10000000000000000000000000000000000;
             result[1] = 1000000000000000000;
         }else if(curvePool==curvePoolAddressUSDT ||
-                curvePool==curvePoolAddressSUSD){
+                curvePool==curvePoolAddressSUSD ||
+                curvePool==curvePoolAddressCompound){
             uint256 ind=0;
             result = PRECISION_MUL;
             for(int8 i=0; i<int256(N_COINS);++i){
@@ -188,7 +196,8 @@ contract PriceAndSlippageComputerContract {
         for(uint8 i=0;i<N_COINS;){
             if(curvePool==curvePoolAddressBUSD || 
                 curvePool==curvePoolAddressUSDT ||
-                curvePool==curvePoolAddressSUSD){
+                curvePool==curvePoolAddressSUSD ||
+                curvePool==curvePoolAddressCompound){
                 result[ind] = result[ind] * stableSwap.balances(int8(i)) / PRECISION;
             }else if(curvePool==curvePoolAddress3Pool  ||
                 curvePool==curvePoolAddressEURS||
@@ -211,7 +220,8 @@ contract PriceAndSlippageComputerContract {
         for(uint8 i=0;i<N_COINS;){
             if(curvePool==curvePoolAddressBUSD || 
                     curvePool==curvePoolAddressUSDT ||
-                    curvePool==curvePoolAddressSUSD) {
+                    curvePool==curvePoolAddressSUSD ||
+                    curvePool==curvePoolAddressCompound) {
                 if(tokenAddress==stableSwap.underlying_coins(int8(i))){
                     delete tokenAddress;
                     return i;
@@ -245,7 +255,6 @@ contract PriceAndSlippageComputerContract {
                 i++;
             }
         }
-        delete xps;
         return s;
     }
     
@@ -274,7 +283,7 @@ contract PriceAndSlippageComputerContract {
         uint256 balanceProduct = getBalanceProduct();
         return  (PRECISION*reserveFrom * (reserveTo*A*n**(2*n)*balanceProduct + (D**(n+1)))) / (reserveTo * (reserveFrom*A*n**(2*n)*balanceProduct + D**(n+1)));
     
-        //return reserveFrom;
+    //    return reserveFrom;
     }
 
     function computePriceWithFee(string memory tokenFrom, string memory tokenTo) public returns(uint){
