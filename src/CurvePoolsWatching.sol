@@ -5,6 +5,7 @@ interface IStableSwap {
     function coins(int128 i) external view returns (address);
     function coins(uint256 i) external view returns (address);
     function underlying_coins(int128 i) external view returns (address);
+    function underlying_coins(uint256 i) external view returns (address);
     function balances(int128 i) external view returns (uint);
     function balances(uint256 i) external view returns (uint);
     function get_virtual_price() external returns (uint256);
@@ -248,6 +249,14 @@ contract PriceAndSlippageComputerContract {
                     i++;
                 }
             }
+        }else if(curvePool==curvePoolAddressAAVE){
+            for(uint8 i=0;i<N_COINS;){
+                result[ind] = result[ind]*stableSwap.balances(i);
+                unchecked {
+                    ind++;
+                    i++;
+                }
+            }
         }
         return result;
     }
@@ -266,13 +275,17 @@ contract PriceAndSlippageComputerContract {
                     return i;
                 }
             }else if(curvePool==curvePoolAddress3Pool|| 
-                    curvePool==curvePoolAddressAAVE ||
                     curvePool==curvePoolAddressEURS ||
                     curvePool==curvePoolAddressAETH ||
                     curvePool==curvePoolAddressLINK ||
                     curvePool==curvePoolAddressSETH ||
                     curvePool==curvePoolAddressStETH){
                 if(tokenAddress==stableSwap.coins(i)){
+                    delete tokenAddress;
+                    return i;
+                }
+            }else if(curvePool==curvePoolAddressAAVE){
+                if(tokenAddress==stableSwap.underlying_coins(i)){
                     delete tokenAddress;
                     return i;
                 }
@@ -323,9 +336,7 @@ contract PriceAndSlippageComputerContract {
         uint256 n = N_COINS;
         uint256 D = getD();
         uint256 balanceProduct = getBalanceProduct();
-        return  (PRECISION*reserveFrom * (reserveTo*A*n**(2*n)*balanceProduct + (D**(n+1)))) / (reserveTo * (reserveFrom*A*n**(2*n)*balanceProduct + D**(n+1)));
-    
-    //    return xps[1];
+        return (PRECISION*reserveFrom * (reserveTo*A*n**(2*n)*balanceProduct + (D**(n+1)))) / (reserveTo * (reserveFrom*A*n**(2*n)*balanceProduct + D**(n+1)));
     }
 
     function computePriceWithFee(string memory tokenFrom, string memory tokenTo) public returns(uint){
