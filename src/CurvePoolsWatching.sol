@@ -45,10 +45,10 @@ address constant curvePoolAddressAETH = 0xA96A65c051bF88B4095Ee1f2451C2A9d43F53A
 address constant curvePoolAddressCompound = 0xA2B47E3D5c44877cca798226B7B8118F9BFb7A56;
 address constant curvePoolAddressLINK = 0xF178C0b5Bb7e7aBF4e12A4838C7b7c5bA2C623c0;
 address constant curvePoolAddressSETH = 0xc5424B857f758E906013F3555Dad202e4bdB4567;
+address constant curvePoolAddressStETH = 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022;
 
 
 //TODO: Handle the below stable swaps
-address constant curvePoolAddressStETH = 0xDC24316b9AE028F1497c275EB9192a3Ea0f67022;
 address constant curvePoolAddressHBTC = 0x4CA9b3063Ec5866A4B82E437059D2C43d1be596F;
 address constant curvePoolAddressIB = 0x2dded6Da1BF5DBdF597C45fcFaa3194e53EcfeAF;
 address constant curvePoolAddressPax = 0x06364f10B501e868329afBc005b3492902d6C763;
@@ -114,6 +114,10 @@ contract PriceAndSlippageComputerContract {
             PRECISION = 10 ** 18;
             FEE_DENOMINATOR = 10 ** 10;
             PRECISION_MUL = [1, 1000000000000];
+        }else if(curvePool==curvePoolAddressStETH){
+            N_COINS = 2;
+            PRECISION = 10 ** 18;
+            FEE_DENOMINATOR = 10 ** 10;
         }else{
             revert("Cannot setup variables, address not supported.");
         }
@@ -143,12 +147,14 @@ contract PriceAndSlippageComputerContract {
             return 0xE95A203B1a91a908F9B9CE46459d101078c2c3cb;
         }else if(tokenHash==keccak256(bytes("ETH"))){
             return 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+        }else if(tokenHash==keccak256(bytes("stETH"))){
+            return 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+        }else if(tokenHash==keccak256(bytes("sETH"))){
+            return 0x5e74C9036fb86BD7eCdcb084a0673EFc32eA31cb;
         }else if(tokenHash==keccak256(bytes("LINK"))){
             return 0x514910771AF9Ca656af840dff83E8264EcF986CA;
         }else if(tokenHash==keccak256(bytes("sLINK"))){
             return 0xbBC455cb4F1B9e4bFC4B73970d360c8f032EfEE6;
-        }else if(tokenHash==keccak256(bytes("sETH"))){
-            return 0x5e74C9036fb86BD7eCdcb084a0673EFc32eA31cb;
         }else{
             revert("Token not supported.");
         }
@@ -193,7 +199,8 @@ contract PriceAndSlippageComputerContract {
         }else if(curvePool==curvePoolAddressAAVE){
             result = PRECISION_MUL;
         }else if(curvePool==curvePoolAddressLINK ||
-                    curvePool==curvePoolAddressSETH){
+                    curvePool==curvePoolAddressSETH ||
+                    curvePool==curvePoolAddressStETH){
             result[0] = 1;
             result[1] = 1;
         }else if(curvePool==curvePoolAddressAETH){
@@ -231,8 +238,9 @@ contract PriceAndSlippageComputerContract {
                     i++;
                 }
             }
-        }else if(curvePool==curvePoolAddressLINK||
-                    curvePool==curvePoolAddressSETH){
+        }else if(curvePool==curvePoolAddressLINK ||
+                    curvePool==curvePoolAddressSETH ||
+                    curvePool==curvePoolAddressStETH){
             for(uint8 i=0;i<N_COINS;){
                 result[ind] = stableSwap.balances(i);
                 unchecked {
@@ -262,7 +270,8 @@ contract PriceAndSlippageComputerContract {
                     curvePool==curvePoolAddressEURS ||
                     curvePool==curvePoolAddressAETH ||
                     curvePool==curvePoolAddressLINK ||
-                    curvePool==curvePoolAddressSETH){
+                    curvePool==curvePoolAddressSETH ||
+                    curvePool==curvePoolAddressStETH){
                 if(tokenAddress==stableSwap.coins(i)){
                     delete tokenAddress;
                     return i;
