@@ -36,182 +36,246 @@ contract CurvePoolsWatchingTest is Test {
         assertTrue(p>0);
     }
 
-    function testComputePriceAndSlippage() public {
-        address curvePool = priceAndSlippageComputer.getCurvePoolContractAddress();
-        console.log("address",curvePool);
-        if(curvePool==curvePoolAddressBUSD){
-            string[4] memory tokens = ["DAI","USDC","USDT","BUSD"];
-            string memory tokenTo = "BUSD";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<4;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
-        }else if(curvePool==curvePoolAddress3Pool || 
-        curvePool==curvePoolAddressUSDT || 
-        curvePool==curvePoolAddressAAVE){
-            string[3] memory tokens = ["DAI","USDC","USDT"];
-            string memory tokenTo = "USDT";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<3;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
-        }else if(curvePool==curvePoolAddressEURS){
-            string[2] memory tokens = ["EURS","sEUR"];
-            string memory tokenTo = "EURS";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<2;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
-        }else if(curvePool==curvePoolAddressSUSD){
-            string[4] memory tokens = ["sUSD", "DAI","USDC","USDT"];
-            string memory tokenTo = "USDC";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<4;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
-        }else if(curvePool==curvePoolAddressAETH){
-            string[2] memory tokens = ["ETH","aETH"];
-            string memory tokenTo = "aETH";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<2;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
-        }else if(curvePool==curvePoolAddressCompound){
-            string[2] memory tokens = ["DAI","USDC"];
-            string memory tokenTo = "DAI";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<2;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
-        }else if(curvePool==curvePoolAddressLINK){
-            string[2] memory tokens = ["LINK","sLINK"];
-            string memory tokenTo = "sLINK";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<2;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
-        }else if(curvePool==curvePoolAddressSETH){
-            string[2] memory tokens = ["ETH","sETH"];
-            string memory tokenTo = "sETH";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<2;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
-        }else if(curvePool==curvePoolAddressStETH){
-            string[2] memory tokens = ["ETH","stETH"];
-            string memory tokenTo = "stETH";
-            string memory tokenFrom;
-            uint price;
-            uint priceWithFee;
-            uint slippage;
-            for(uint8 i=0;i<2;++i){
-                tokenFrom = tokens[i];
-                price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
-                priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
-                slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
-                console.log("---------------");
-                console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
-                console.log("Rate without fee", price);
-                console.log("Rate with fee", priceWithFee);
-                console.log("Slippage", slippage);
-                assertTrue(price>priceWithFee);
-            }
+    function testComputePriceAndSlippageBUSD() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressBUSD);
+        string[4] memory tokens = ["DAI","USDC","USDT","BUSD"];
+        string memory tokenTo = "BUSD";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<4;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
         }
     }
+
+    function testComputePriceAndSlippage3Pool() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddress3Pool);
+        string[3] memory tokens = ["DAI","USDC","USDT"];
+        string memory tokenTo = "USDT";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<3;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageAAVE() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressAAVE);
+        string[3] memory tokens = ["DAI","USDC","USDT"];
+        string memory tokenTo = "USDT";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<3;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageUSDT() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressUSDT);
+        string[3] memory tokens = ["DAI","USDC","USDT"];
+        string memory tokenTo = "USDT";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<3;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageEURS() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressEURS);
+        string[2] memory tokens = ["EURS","sEUR"];
+        string memory tokenTo = "EURS";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<2;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageSUSD() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressSUSD);
+        string[4] memory tokens = ["sUSD", "DAI","USDC","USDT"];
+        string memory tokenTo = "USDC";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<4;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageAETH() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressAETH);
+        string[2] memory tokens = ["ETH","aETH"];
+        string memory tokenTo = "aETH";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<2;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageCompound() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressCompound);
+        string[2] memory tokens = ["DAI","USDC"];
+        string memory tokenTo = "DAI";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<2;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageLINK() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressLINK);
+        string[2] memory tokens = ["LINK","sLINK"];
+        string memory tokenTo = "sLINK";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<2;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageSSETH() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressSETH);
+        string[2] memory tokens = ["ETH","sETH"];
+        string memory tokenTo = "sETH";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<2;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
+    function testComputePriceAndSlippageStETH() public {
+        priceAndSlippageComputer = new PriceAndSlippageComputerContract(curvePoolAddressStETH);
+        string[2] memory tokens = ["ETH","stETH"];
+        string memory tokenTo = "stETH";
+        string memory tokenFrom;
+        uint price;
+        uint priceWithFee;
+        uint slippage;
+        for(uint8 i=0;i<2;++i){
+            tokenFrom = tokens[i];
+            price = priceAndSlippageComputer.computePrice(tokenFrom,tokenTo);
+            priceWithFee = priceAndSlippageComputer.computePriceWithFee(tokenFrom,tokenTo);
+            slippage = priceAndSlippageComputer.computeSlippage(tokenFrom,tokenTo);
+            console.log("---------------");
+            console.log("Looking at swap from ", tokenFrom,"to",tokenTo);
+            console.log("Rate without fee", price);
+            console.log("Rate with fee", priceWithFee);
+            console.log("Slippage", slippage);
+            assertTrue(price>priceWithFee);
+        }
+    }
+
 }
