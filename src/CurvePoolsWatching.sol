@@ -70,12 +70,15 @@ contract PriceAndSlippageComputerContract {
     uint256 internal LENDING_PRECISION;
     uint256[] internal PRECISION_MUL;
     bool[] internal USE_LENDING;
+    mapping(bytes32 => address) internal tokenAddresses; 
+
     
 
     constructor(address curvePool){
         owner=msg.sender;
         setCurvePoolContractAddress(curvePool);
         setUpVariables();
+        setUpTokens();
     }
 
     function setUpVariables() internal {
@@ -134,37 +137,24 @@ contract PriceAndSlippageComputerContract {
         stableSwap = IStableSwap(_address);
     }
 
-    function getAddressOfToken(string memory token) internal pure returns (address){
-        bytes32 tokenHash = keccak256(bytes(token));
-        if(tokenHash==keccak256(bytes("DAI"))){
-            return 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-        } else if(tokenHash==keccak256(bytes("USDC"))){
-            return 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-        }else if(tokenHash==keccak256(bytes("USDT"))){
-            return 0xdAC17F958D2ee523a2206206994597C13D831ec7;
-        }else if(tokenHash==keccak256(bytes("BUSD"))){
-            return 0x4Fabb145d64652a948d72533023f6E7A623C7C53;
-        }else if(tokenHash==keccak256(bytes("EURS"))){
-            return 0xdB25f211AB05b1c97D595516F45794528a807ad8;
-        }else if(tokenHash==keccak256(bytes("sEUR"))){
-            return 0xD71eCFF9342A5Ced620049e616c5035F1dB98620;
-        }else if(tokenHash==keccak256(bytes("sUSD"))){
-            return 0x57Ab1ec28D129707052df4dF418D58a2D46d5f51;
-        }else if(tokenHash==keccak256(bytes("aETH"))){
-            return 0xE95A203B1a91a908F9B9CE46459d101078c2c3cb;
-        }else if(tokenHash==keccak256(bytes("ETH"))){
-            return 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-        }else if(tokenHash==keccak256(bytes("stETH"))){
-            return 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
-        }else if(tokenHash==keccak256(bytes("sETH"))){
-            return 0x5e74C9036fb86BD7eCdcb084a0673EFc32eA31cb;
-        }else if(tokenHash==keccak256(bytes("LINK"))){
-            return 0x514910771AF9Ca656af840dff83E8264EcF986CA;
-        }else if(tokenHash==keccak256(bytes("sLINK"))){
-            return 0xbBC455cb4F1B9e4bFC4B73970d360c8f032EfEE6;
-        }else{
-            revert("Token not supported.");
-        }
+    function setUpTokens() internal {
+        tokenAddresses[keccak256(bytes("DAI"))] = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+        tokenAddresses[keccak256(bytes("USDC"))] = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+        tokenAddresses[keccak256(bytes("USDT"))] = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+        tokenAddresses[keccak256(bytes("BUSD"))] = 0x4Fabb145d64652a948d72533023f6E7A623C7C53;
+        tokenAddresses[keccak256(bytes("EURS"))] = 0xdB25f211AB05b1c97D595516F45794528a807ad8;
+        tokenAddresses[keccak256(bytes("sEUR"))] = 0xD71eCFF9342A5Ced620049e616c5035F1dB98620;
+        tokenAddresses[keccak256(bytes("sUSD"))] = 0x57Ab1ec28D129707052df4dF418D58a2D46d5f51;
+        tokenAddresses[keccak256(bytes("aETH"))] = 0xE95A203B1a91a908F9B9CE46459d101078c2c3cb;
+        tokenAddresses[keccak256(bytes("ETH"))] = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+        tokenAddresses[keccak256(bytes("stETH"))] = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+        tokenAddresses[keccak256(bytes("sETH"))] = 0x5e74C9036fb86BD7eCdcb084a0673EFc32eA31cb;
+        tokenAddresses[keccak256(bytes("LINK"))] = 0x514910771AF9Ca656af840dff83E8264EcF986CA;
+        tokenAddresses[keccak256(bytes("sLINK"))] = 0xbBC455cb4F1B9e4bFC4B73970d360c8f032EfEE6;
+    }
+
+    function getAddressOfToken(string memory token) internal view returns (address){
+        return tokenAddresses[keccak256(bytes(token))];
     }
 
     // Repdroduced from Curve contract
